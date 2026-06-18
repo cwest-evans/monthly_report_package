@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Monthly Pulse Report</title>
+  <style>
+    body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; margin: 0; }
+    .page { padding: 24px 28px; }
+    h1 { margin: 0 0 6px 0; font-size: 22px; }
+    h2 { margin: 22px 0 10px 0; font-size: 16px; }
+    .meta { color: #555; font-size: 12px; margin-bottom: 14px; }
+    .cell { border: 1px solid #e6e6e6; border-radius: 10px; padding: 14px; margin: 12px 0; }
+    .callout { border-left: 6px solid #888; background: #fafafa; }
+    .kpis { display: flex; gap: 10px; flex-wrap: wrap; }
+    .kpi { border: 1px solid #eee; border-radius: 10px; padding: 10px 12px; min-width: 180px; }
+    .kpi .label { color: #666; font-size: 11px; }
+    .kpi .value { font-size: 16px; margin-top: 4px; }
+    img { max-width: 100%; height: auto; border-radius: 10px; }
+    .df { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .df th { text-align: left; padding: 6px 8px; border-bottom: 1px solid #ddd; background: #f6f6f6; }
+    .df td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 11px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Monthly Pulse Check Report</h1>
+    <div class="meta">
+      <div><strong>{{ ctx.recipient_name }}</strong> ({{ ctx.recipient_email }}) — {{ ctx.audience_type }}</div>
+      <div>AsOfMonth: {{ ctx.as_of_month }} | SnapshotMonth: {{ ctx.snapshot_month }} | FY: {{ ctx.fiscal_year }}</div>
+      <div class="mono">Scope: DivisionKey={{ ctx.division_key }}, MarketSegmentKey={{ ctx.market_segment_key }}</div>
+    </div>
+
+    <div class="cell callout">
+      <strong>Summary</strong><br>
+      WIP Jobs: {{ insights.get("wip_job_count", "—") }}<br>
+      Revenue (Month): {{ insights.get("rev_month_total", "—") }}<br>
+      Revenue (YTD): {{ insights.get("rev_ytd_total", "—") }}<br>
+      Backlog Total (all periods): {{ insights.get("backlog_total_all_periods", "—") }}
+    </div>
+
+    <h2>Income Statement</h2>
+    <div class="cell">
+      {% if charts.get("is_summary_is_month") %}
+        <img src="{{ charts.get('is_summary_is_month') }}">
+      {% else %}
+        <em>No chart available.</em>
+      {% endif %}
+    </div>
+
+    <h2>Revenue by Job</h2>
+    <div class="cell">
+      {% if charts.get("top10_rev_month") %}
+        <img src="{{ charts.get('top10_rev_month') }}">
+      {% endif %}
+    </div>
+
+    <div class="cell">
+      <strong>Top Jobs (Current Month)</strong><br><br>
+      {{ tables.get("rev_month") | safe }}
+    </div>
+
+    <div class="cell">
+      <strong>Top Jobs (YTD)</strong><br><br>
+      {{ tables.get("rev_ytd") | safe }}
+    </div>
+
+    <h2>WIP (Preview)</h2>
+    <div class="cell">
+      {{ tables.get("wip") | safe }}
+    </div>
+
+    <h2>Rolling 18 Backlog</h2>
+    <div class="cell">
+      {% if charts.get("backlog_by_period") %}
+        <img src="{{ charts.get('backlog_by_period') }}">
+      {% endif %}
+    </div>
+    <div class="cell">
+      {{ tables.get("backlog") | safe }}
+    </div>
+
+    <h2>Income Statement (Preview)</h2>
+    <div class="cell">
+      <strong>Current Month</strong><br><br>
+      {{ tables.get("is_month") | safe }}
+    </div>
+    <div class="cell">
+      <strong>YTD</strong><br><br>
+      {{ tables.get("is_ytd") | safe }}
+    </div>
+  </div>
+</body>
+</html>

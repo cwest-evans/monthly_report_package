@@ -1,0 +1,40 @@
+@"
+# secrets
+.env
+*.env
+.env.*
+
+# virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# generated outputs
+output_data/
+output_test/
+test_inputs/
+*.parquet
+*.xlsx.zip
+
+# logs
+logs/
+*.log
+
+# local file maps / scratch
+tree.txt
+
+# OS
+.DS_Store
+Thumbs.db
+"@ | Set-Content .gitignore
