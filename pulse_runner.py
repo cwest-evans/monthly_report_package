@@ -11,7 +11,6 @@ from config import SQL, GRAPH, ENV, DEV_OVERRIDE_TO
 from graph_mailer import get_access_token, send_mail
 from excel_formatter import load_format_spec_from_xlsx, apply_formats
 
-
 BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = BASE_DIR / "output_data"
 
@@ -115,11 +114,7 @@ def parse_recipient_list(raw: str | None) -> list[str]:
     if not raw:
         return []
 
-    return [
-        email.strip().lower()
-        for email in raw.split(",")
-        if email.strip()
-    ]
+    return [email.strip().lower() for email in raw.split(",") if email.strip()]
 
 
 def get_conn() -> pyodbc.Connection:
@@ -214,7 +209,9 @@ def claim_next(cursor, run_id: int, max_attempts: int = 3) -> dict | None:
     return dfs[0].iloc[0].to_dict()
 
 
-def get_package(cursor, run_id: int, email: str, div_key: str, mkt_key: str) -> list[pd.DataFrame]:
+def get_package(
+    cursor, run_id: int, email: str, div_key: str, mkt_key: str
+) -> list[pd.DataFrame]:
     cursor.execute(
         "EXEC dbo.EGC_sp_Pulse_GetRecipientPackage_Staged ?, ?, ?, ?;",
         run_id,
@@ -234,7 +231,9 @@ def get_package(cursor, run_id: int, email: str, div_key: str, mkt_key: str) -> 
     return [dfs[i] for i in keep_idxs]
 
 
-def mark_success(cursor, run_id: int, email: str, div_key: str, mkt_key: str, filepath: str) -> None:
+def mark_success(
+    cursor, run_id: int, email: str, div_key: str, mkt_key: str, filepath: str
+) -> None:
     cursor.execute(
         "EXEC dbo.EGC_sp_Pulse_Recipient_MarkSuccess ?, ?, ?, ?, ?;",
         run_id,
@@ -245,7 +244,9 @@ def mark_success(cursor, run_id: int, email: str, div_key: str, mkt_key: str, fi
     )
 
 
-def mark_failed(cursor, run_id: int, email: str, div_key: str, mkt_key: str, err: str) -> None:
+def mark_failed(
+    cursor, run_id: int, email: str, div_key: str, mkt_key: str, err: str
+) -> None:
     cursor.execute(
         "EXEC dbo.EGC_sp_Pulse_Recipient_MarkFailed ?, ?, ?, ?, ?;",
         run_id,
@@ -266,8 +267,12 @@ def limit_run_recipients(cursor, run_id: int, recipients: list[str]) -> None:
     if not recipients:
         return
 
-    cursor.execute("IF OBJECT_ID('tempdb..#OnlyRecipients') IS NOT NULL DROP TABLE #OnlyRecipients;")
-    cursor.execute("CREATE TABLE #OnlyRecipients (RecipientEmail nvarchar(255) NOT NULL PRIMARY KEY);")
+    cursor.execute(
+        "IF OBJECT_ID('tempdb..#OnlyRecipients') IS NOT NULL DROP TABLE #OnlyRecipients;"
+    )
+    cursor.execute(
+        "CREATE TABLE #OnlyRecipients (RecipientEmail nvarchar(255) NOT NULL PRIMARY KEY);"
+    )
 
     cursor.executemany(
         "INSERT INTO #OnlyRecipients (RecipientEmail) VALUES (?);",
@@ -447,7 +452,9 @@ def write_excel(filepath: str | Path, dfs: list[pd.DataFrame]) -> None:
             sheet = safe_sheet_name(SHEETS[i] if i < len(SHEETS) else f"Sheet{i + 1}")
 
             if df is None or df.empty:
-                pd.DataFrame({"(no rows)": []}).to_excel(writer, sheet_name=sheet, index=False)
+                pd.DataFrame({"(no rows)": []}).to_excel(
+                    writer, sheet_name=sheet, index=False
+                )
             else:
                 df.to_excel(writer, sheet_name=sheet, index=False)
 
@@ -523,7 +530,9 @@ def main() -> None:
         validate_run(cur, run_id)
 
         if args.validate_only:
-            print("Validate-only mode complete. No recipients were claimed and no packages were sent.")
+            print(
+                "Validate-only mode complete. No recipients were claimed and no packages were sent."
+            )
             return
 
         while True:
@@ -554,7 +563,9 @@ def main() -> None:
                 zip_path = zip_file(filepath)
 
                 to_addr = resolve_to_address(email)
-                subject = f"Monthly Pulse Check ({as_of_str}) - {div_label} | {mkt_label}"
+                subject = (
+                    f"Monthly Pulse Check ({as_of_str}) - {div_label} | {mkt_label}"
+                )
                 body = f"""
                 <p>Attached is your Monthly Pulse Check package for <b>{as_of_str}</b>.</p>
                 <p><b>Scope:</b> Division={div_label}, Market={mkt_label}</p>
@@ -567,6 +578,10 @@ def main() -> None:
                     raise ValueError(
                         f"Zipped attachment is {size_mb:.2f} MB "
                         "(still too large for simple Graph send)."
+                    )
+                if token is None:
+                    raise RuntimeError(
+                        "Cannot send email because Graph token was not initialized."
                     )
 
                 send_mail(
